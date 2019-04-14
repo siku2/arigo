@@ -1,5 +1,7 @@
 package arigo
 
+// TODO complete implementation
+
 // GID provides an object oriented approach to arigo.
 // Instead of calling the methods on the client directly,
 // you can call them on the GID instance.

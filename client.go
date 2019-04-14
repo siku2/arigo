@@ -1,5 +1,8 @@
-// arigo is a go library to communicate with the aria2 rpc interface.
+// Package arigo is a library to communicate with the aria2 RPC interface.
 //
+// aria2
+//
+// aria2 is a utility for downloading files.
 // The supported protocols are HTTP(S), FTP, SFTP, BitTorrent, and Metalink.
 // aria2 can download a file from multiple sources/protocols and tries to utilize your maximum download bandwidth.
 // It supports downloading a file from HTTP(S)/FTP /SFTP and BitTorrent at the same time,
@@ -21,7 +24,9 @@ import (
 	"os"
 )
 
-// URIs creates a string slice from the given uris
+// URIs creates a string slice from the given uris.
+// This is a convenience function for the various client
+// methods that accept a slice of URIs (strings).
 func URIs(uris ...string) []string {
 	return uris
 }
@@ -32,7 +37,6 @@ type EventListener func(event *DownloadEvent)
 
 // Client represents a connection to an aria2 rpc interface over websocket.
 type Client struct {
-	ws        *websocket.Conn
 	rpcClient *rpc2.Client
 	closed    bool
 
@@ -45,9 +49,8 @@ type Client struct {
 // NewClient creates a new client.
 // The client needs to be manually ran
 // using the Run method.
-func NewClient(ws *websocket.Conn, rpcClient *rpc2.Client, authToken string) Client {
+func NewClient(rpcClient *rpc2.Client, authToken string) Client {
 	client := Client{
-		ws:         ws,
 		rpcClient:  rpcClient,
 		authToken:  authToken,
 		closed:     false,
@@ -79,7 +82,7 @@ func Dial(url string, authToken string) (client Client, err error) {
 	codec := jsonrpc.NewJSONCodec(&rwc)
 	rpcClient := rpc2.NewClientWithCodec(codec)
 
-	client = NewClient(ws, rpcClient, authToken)
+	client = NewClient(rpcClient, authToken)
 	go client.Run()
 
 	return
@@ -97,13 +100,7 @@ func (c *Client) Run() {
 func (c *Client) Close() error {
 	c.closed = true
 
-	err := c.rpcClient.Close()
-	wsErr := c.ws.Close()
-	if err == nil {
-		err = wsErr
-	}
-
-	return err
+	return c.rpcClient.Close()
 }
 
 func (c *Client) String() string {
@@ -524,11 +521,17 @@ func (c *Client) TellStopped(offset int, num uint, keys ...string) ([]Status, er
 	return reply, err
 }
 
+// PositionSetBehaviour determines how a position is to be interpreted
 type PositionSetBehaviour string
 
 const (
-	SetPositionStart    PositionSetBehaviour = "POS_SET"
-	SetPositionEnd      PositionSetBehaviour = "POS_END"
+	// SetPositionStart sets the position relative to the start
+	SetPositionStart PositionSetBehaviour = "POS_SET"
+
+	// SetPositionEnd sets the position relative to the end
+	SetPositionEnd PositionSetBehaviour = "POS_END"
+
+	// SetPositionRelative sets the position relative to the current position
 	SetPositionRelative PositionSetBehaviour = "POS_CUR"
 )
 

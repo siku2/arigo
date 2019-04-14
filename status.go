@@ -38,7 +38,7 @@ type Status struct {
 	BelongsTo              string
 	Dir                    string
 	Files                  []File
-	Bittorrent             BittorrentStatus
+	BitTorrent             BitTorrentStatus
 	VerifiedLength         uint `json:",string"`
 	VerifyIntegrityPending bool `json:",string"`
 }
@@ -62,14 +62,14 @@ func (t *UNIXTime) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-type BittorrentStatus struct {
+type BitTorrentStatus struct {
 	AnnounceList     []URI
 	Comment          string
 	CreationDateUNIX UNIXTime `json:",string"`
 	Mode             string
-	Info             BittorrentStatusInfo
+	Info             BitTorrentStatusInfo
 }
 
-type BittorrentStatusInfo struct {
+type BitTorrentStatusInfo struct {
 	Name string
 }
