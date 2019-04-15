@@ -2,6 +2,7 @@ package arigo
 
 import "encoding/json"
 
+// MethodCallError represents an error returned by aria2 for a MethodCall
 type MethodCallError struct {
 	Code    uint `json:",string"`
 	Message string

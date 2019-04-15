@@ -2,7 +2,7 @@ package arigo
 
 type Peer struct {
 	// Percent-encoded peer ID.
-	PeerId string
+	ID string
 	// IP address of the peer.
 	IP string
 	// Port number of the peer

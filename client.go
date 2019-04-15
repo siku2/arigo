@@ -181,7 +181,7 @@ func (c *Client) Download(uris []string, options *Options) (status Status, err e
 // The passed context can be used to cancel the download.
 // It returns the status of the finished download.
 func (c *Client) DownloadWithContext(ctx context.Context, uris []string, options *Options) (status Status, err error) {
-	gid, err := c.AddUri(uris, options)
+	gid, err := c.AddURI(uris, options)
 	if err != nil {
 		return
 	}
@@ -234,7 +234,7 @@ func (c *Client) getArgs(args ...interface{}) []interface{} {
 	return append([]interface{}{tokenArg}, args...)
 }
 
-// AddUriAtPosition adds a new download at a specific position in the queue.
+// AddURIAtPosition adds a new download at a specific position in the queue.
 // uris is a slice of HTTP/FTP/SFTP/BitTorrent URIs pointing to the same resource.
 // If you mix URIs pointing to different resources,
 // then the download may fail or be corrupted without aria2 complaining.
@@ -246,7 +246,7 @@ func (c *Client) getArgs(args ...interface{}) []interface{} {
 // the new download is appended to the end of the queue.
 //
 // This method returns the GID of the newly registered download.
-func (c *Client) AddUriAtPosition(uris []string, options *Options, position *uint) (GID, error) {
+func (c *Client) AddURIAtPosition(uris []string, options *Options, position *uint) (GID, error) {
 	args := c.getArgs(uris)
 
 	if options != nil {
@@ -263,7 +263,7 @@ func (c *Client) AddUriAtPosition(uris []string, options *Options, position *uin
 	return c.GetGID(reply), err
 }
 
-// AddUri adds a new download.
+// AddURI adds a new download.
 // uris is a slice of HTTP/FTP/SFTP/BitTorrent URIs (strings) pointing to the same resource.
 // If you mix URIs pointing to different resources,
 // then the download may fail or be corrupted without aria2 complaining.
@@ -273,12 +273,12 @@ func (c *Client) AddUriAtPosition(uris []string, options *Options, position *uin
 // The new download is appended to the end of the queue.
 //
 // This method returns the GID of the newly registered download.
-func (c *Client) AddUri(uris []string, options *Options) (GID, error) {
-	return c.AddUriAtPosition(uris, options, nil)
+func (c *Client) AddURI(uris []string, options *Options) (GID, error) {
+	return c.AddURIAtPosition(uris, options, nil)
 }
 
 // AddTorrentAtPosition adds a BitTorrent download at a specific position in the queue.
-// If you want to add a BitTorrent Magnet URI, use the AddUri() method instead.
+// If you want to add a BitTorrent Magnet URI, use the AddURI() method instead.
 // torrent must be the contents of the “.torrent” file.
 // uris is an array of URIs (string). uris is used for Web-seeding.
 //
@@ -310,7 +310,7 @@ func (c *Client) AddTorrentAtPosition(torrent []byte, uris []string, options *Op
 }
 
 // AddTorrent adds a BitTorrent download by uploading a “.torrent” file.
-// If you want to add a BitTorrent Magnet URI, use the AddUri() method instead.
+// If you want to add a BitTorrent Magnet URI, use the AddURI() method instead.
 // torrent must be the contents of the “.torrent” file.
 // uris is an array of URIs (string). uris is used for Web-seeding.
 //
@@ -603,11 +603,11 @@ func (c *Client) GetOptions(gid string) (Options, error) {
 //
 // Except for following options, all options are available:
 // 	- DryRun
-//  - MetalinkBaseUri
-//  - ParameterizedUri
+//  - MetalinkBaseURI
+//  - ParameterizedURI
 //  - Pause
 //  - PieceLength
-//  - RpcSaveUploadMetadata
+//  - RPCSaveUploadMetadata
 //
 // Except for the following options, changing the other options of active download makes it restart
 // (restart itself is managed by aria2, and no user intervention is required):

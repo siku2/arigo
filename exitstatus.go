@@ -82,8 +82,8 @@ const (
 	// TooManyRedirects indicates that too many redirects occurred.
 	TooManyRedirects
 
-	// HttpAuthorizationFailed indicates that HTTP authorization failed.
-	HttpAuthorizationFailed
+	// HTTPAuthorizationFailed indicates that HTTP authorization failed.
+	HTTPAuthorizationFailed
 
 	// BencodedFileParseError indicates that aria2 could not parse bencoded file (usually “.torrent” file).
 	BencodedFileParseError
