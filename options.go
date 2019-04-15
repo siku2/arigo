@@ -1,5 +1,6 @@
 package arigo
 
+// Options represents the aria2 input file options
 type Options struct {
 	AllProxy                      string  `json:"all-proxy,omitempty"`
 	AllProxyPassword              string  `json:"all-proxy-passwd,omitempty"`

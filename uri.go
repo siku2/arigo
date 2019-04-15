@@ -12,8 +12,6 @@ const (
 
 // URI represents a uri used in a download
 type URI struct {
-	// URI
-	URI string
-	// Status indicates the status of the uri
-	Status URIStatus
+	URI    string
+	Status URIStatus // Status of the uri
 }

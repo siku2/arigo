@@ -1,11 +1,9 @@
-package rpc
+package ws_rwc
 
 import (
 	"github.com/gorilla/websocket"
 	"io"
 )
-
-// TODO move to internal/
 
 type ReadWriteCloser struct {
 	ws *websocket.Conn

@@ -17,7 +17,7 @@ const (
 	StatusPaused DownloadStatus = "paused"
 	// StatusError represents downloads that were stopped because of error
 	StatusError DownloadStatus = "error"
-	// StatusComplete represents stopped and completed downloads
+	// StatusCompleted represents stopped and completed downloads
 	StatusCompleted DownloadStatus = "completed"
 	// StatusRemoved represents the downloads removed by user
 	StatusRemoved DownloadStatus = "removed"
@@ -73,15 +73,17 @@ type Status struct {
 	VerifyIntegrityPending bool `json:",string"` // true if this download is waiting for the hash check in a queue.
 }
 
-// UNIXTime is just time.Time but it marshals to a Unix timestamp.
+// UNIXTime is just time.Time but it marshals to a unix timestamp.
 type UNIXTime struct {
 	time.Time
 }
 
+// MarshalJSON converts the time to a unix timestamp
 func (t UNIXTime) MarshalJSON() ([]byte, error) {
 	return json.Marshal(t.Unix())
 }
 
+// UnmarshalJSON loads a unix timestamp
 func (t *UNIXTime) UnmarshalJSON(data []byte) error {
 	var ts int64
 	err := json.Unmarshal(data, &ts)
