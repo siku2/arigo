@@ -9,7 +9,7 @@ import (
 	"github.com/cenkalti/rpc2"
 	"github.com/cenkalti/rpc2/jsonrpc"
 	"github.com/gorilla/websocket"
-	"github.com/myanimestream/arigo/internal/ws_rwc"
+	"github.com/myanimestream/arigo/internal/wsrpc"
 	"net/http"
 	"os"
 )
@@ -68,7 +68,7 @@ func Dial(url string, authToken string) (client Client, err error) {
 		return
 	}
 
-	rwc := ws_rwc.NewReadWriteCloser(ws)
+	rwc := wsrpc.NewReadWriteCloser(ws)
 	codec := jsonrpc.NewJSONCodec(&rwc)
 	rpcClient := rpc2.NewClientWithCodec(codec)
 

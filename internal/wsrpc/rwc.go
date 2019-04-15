@@ -1,20 +1,23 @@
-package ws_rwc
+package wsrpc
 
 import (
 	"github.com/gorilla/websocket"
 	"io"
 )
 
+// ReadWriteCloser is a rwc based on WebSockets
 type ReadWriteCloser struct {
 	ws *websocket.Conn
 	r  io.Reader
 	w  io.WriteCloser
 }
 
+// NewReadWriteCloser creates a new rwc from a WebSocket connection
 func NewReadWriteCloser(ws *websocket.Conn) ReadWriteCloser {
 	return ReadWriteCloser{ws: ws}
 }
 
+// Read reads from the WebSocket into p
 func (rwc *ReadWriteCloser) Read(p []byte) (n int, err error) {
 	if rwc.r == nil {
 		_, rwc.r, err = rwc.ws.NextReader()
@@ -40,6 +43,7 @@ func (rwc *ReadWriteCloser) Read(p []byte) (n int, err error) {
 	return
 }
 
+// Write writes the provided bytes to the WebSocket
 func (rwc *ReadWriteCloser) Write(p []byte) (n int, err error) {
 	if rwc.w == nil {
 		rwc.w, err = rwc.ws.NextWriter(websocket.TextMessage)
@@ -62,6 +66,7 @@ func (rwc *ReadWriteCloser) Write(p []byte) (n int, err error) {
 	return
 }
 
+// Close the rwc and the underlying WebSocket connection
 func (rwc *ReadWriteCloser) Close() (err error) {
 	if rwc.w != nil {
 		err = rwc.w.Close()
