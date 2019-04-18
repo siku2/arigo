@@ -5,7 +5,7 @@ import "fmt"
 // Dial is a convenience method which connects to an aria2 RPC interface.
 // It establishes a WebSocket connection to the given url and passes it
 // to the NewClient() method. The client is also started.
-func ExampleDial() {
+func ExampleClient() {
 	// arigo uses a WebSocket connection to communicate with the aria2 RPC.
 	// This makes it possible to receive download events.
 	// authToken is the secret string set on the aria2 server. Setting it to an empty string
