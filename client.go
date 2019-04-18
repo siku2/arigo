@@ -21,6 +21,13 @@ func URIs(uris ...string) []string {
 	return uris
 }
 
+// Position returns a reference to the passed integer.
+// This is a convenience function for the client methods
+// that accept a position.
+func Position(position uint) *uint {
+	return &position
+}
+
 // EventListener represents a function which should be called
 // when an event occurs.
 type EventListener func(event *DownloadEvent)
@@ -474,8 +481,6 @@ func (c *Client) TellActive(keys ...string) ([]Status, error) {
 
 	return reply, err
 }
-
-// TODO create iterators for the Tell... methods
 
 // TellWaiting returns a slice of waiting downloads including paused ones represented by their Status.
 //

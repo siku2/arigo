@@ -6,29 +6,29 @@ import (
 	"testing"
 )
 
-func TestFormat(t *testing.T) {
+func TestStatusFormat(t *testing.T) {
 	data := []byte(`{
-	"bitfield": "0000000000",
-	"completedLength": "901120",
-	"connections": "1",
-	"dir": "/downloads",
-	"downloadSpeed": "15158",
-	"files": [{
-		"index": "1",
-		"length": "34896138",
-		"completedLength": "34896138",
-		"path": "/downloads/file",
-		"selected": "true",
-		"uris": [{"status": "used", "uri": "http://example.org/file"}]
-	}],
-	"gid": "2089b05ecca3d829",
-	"numPieces": "34",
-	"pieceLength": "1048576",
-	"status": "active",
-	"totalLength": "34896138",
-	"uploadLength": "0",
-	"uploadSpeed": "0"
-}`)
+		"bitfield": "0000000000",
+		"completedLength": "901120",
+		"connections": "1",
+		"dir": "/downloads",
+		"downloadSpeed": "15158",
+		"files": [{
+			"index": "1",
+			"length": "34896138",
+			"completedLength": "34896138",
+			"path": "/downloads/file",
+			"selected": "true",
+			"uris": [{"status": "used", "uri": "http://example.org/file"}]
+		}],
+		"gid": "2089b05ecca3d829",
+		"numPieces": "34",
+		"pieceLength": "1048576",
+		"status": "active",
+		"totalLength": "34896138",
+		"uploadLength": "0",
+		"uploadSpeed": "0"
+	}`)
 
 	var status Status
 	if err := json.Unmarshal(data, &status); err != nil {

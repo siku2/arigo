@@ -2,7 +2,7 @@ package arigo
 
 // Peer represents a torrent peer
 type Peer struct {
-	ID   string // Percent-encoded peer ID.
+	ID   string `json:"peerId"` // Percent-encoded peer ID.
 	IP   string // IP address of the peer.
 	Port uint16 `json:",string"` // Port number of the peer
 
