@@ -42,9 +42,11 @@ type MethodCall struct {
 }
 
 // NewMethodCall creates a new MethodCall
-func NewMethodCall(methodName string, params ...interface{}) MethodCall {
-	return MethodCall{
+func NewMethodCall(methodName string, params ...interface{}) *MethodCall {
+	return &MethodCall{
 		MethodName: methodName,
 		Params:     params,
 	}
 }
+
+// TODO create constructors for all methods

@@ -118,7 +118,7 @@ func (gid *GID) ChangePosition(pos int, how PositionSetBehaviour) (int, error) {
 // Returns two integers.
 // The first integer is the number of URIs deleted.
 // The second integer is the number of URIs added.
-func (gid *GID) ChangeURIAt(fileIndex uint, delURIs []string, addURIs []string, position *uint) (uint, uint, error) {
+func (gid *GID) ChangeURIAt(fileIndex uint, delURIs []string, addURIs []string, position uint) (uint, uint, error) {
 	return gid.client.ChangeURIAt(gid.GID, fileIndex, delURIs, addURIs, position)
 }
 
@@ -164,8 +164,8 @@ func (gid *GID) GetOptions() (Options, error) {
 // 	- ForceSave
 // 	- MaxDownloadLimit
 // 	- MaxUploadLimit
-func (gid *GID) ChangeOptions(options Options) error {
-	return gid.client.ChangeOptions(gid.GID, options)
+func (gid *GID) ChangeOptions(changes Options) error {
+	return gid.client.ChangeOptions(gid.GID, changes)
 }
 
 // RemoveDownloadResult removes a completed/error/removed download denoted by gid from memory.

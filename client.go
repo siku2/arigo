@@ -15,9 +15,10 @@ import (
 )
 
 var (
-	DownloadError        = errors.New("download encountered error")
-	DownloadStoppedError = errors.New("download stopped")
-	DownloadCancelled    = errors.New("download cancelled")
+	// ErrDownloadError represents an error that occurred during the download
+	ErrDownloadError = errors.New("download encountered error")
+	// ErrDownloadStopped is the error returned when a download is stopped
+	ErrDownloadStopped = errors.New("download stopped")
 )
 
 // URIs creates a string slice from the given uris.
@@ -27,17 +28,6 @@ func URIs(uris ...string) []string {
 	return uris
 }
 
-// Position returns a reference to the passed integer.
-// This is a convenience function for the client methods
-// that accept a position.
-func Position(position uint) *uint {
-	return &position
-}
-
-// EventListener represents a function which should be called
-// when an event occurs.
-type EventListener func(event *DownloadEvent)
-
 // Client represents a connection to an aria2 rpc interface over websocket.
 type Client struct {
 	rpcClient *rpc2.Client
@@ -45,8 +35,7 @@ type Client struct {
 
 	authToken string
 
-	listeners  map[string][]EventListener
-	activeGIDs map[string]chan error
+	evtTarget eventTarget
 }
 
 // NewClient creates a new client.
@@ -54,11 +43,9 @@ type Client struct {
 // using the Run method.
 func NewClient(rpcClient *rpc2.Client, authToken string) Client {
 	client := Client{
-		rpcClient:  rpcClient,
-		authToken:  authToken,
-		closed:     false,
-		listeners:  make(map[string][]EventListener),
-		activeGIDs: make(map[string]chan error),
+		rpcClient: rpcClient,
+		authToken: authToken,
+		closed:    false,
 	}
 
 	rpcClient.Handle(aria2proto.OnDownloadStart, client.onDownloadStart)
@@ -66,7 +53,7 @@ func NewClient(rpcClient *rpc2.Client, authToken string) Client {
 	rpcClient.Handle(aria2proto.OnDownloadStop, client.onDownloadStop)
 	rpcClient.Handle(aria2proto.OnDownloadComplete, client.onDownloadComplete)
 	rpcClient.Handle(aria2proto.OnDownloadError, client.onDownloadError)
-	rpcClient.Handle(aria2proto.OnDownloadComplete, client.onBtDownloadComplete)
+	rpcClient.Handle(aria2proto.OnDownloadComplete, client.onBTDownloadComplete)
 
 	return client
 }
@@ -106,77 +93,57 @@ func (c *Client) Close() error {
 	return c.rpcClient.Close()
 }
 
-func (c *Client) onEvent(name string, event *DownloadEvent) {
-	listeners, ok := c.listeners[name]
-	if !ok {
-		return
-	}
-
-	for _, listener := range listeners {
-		go listener(event)
-	}
-}
-
 func (c *Client) onDownloadStart(_ *rpc2.Client, event *DownloadEvent, _ *interface{}) error {
-	c.onEvent("downloadStart", event)
+	c.evtTarget.Dispatch(StartEvent, event)
 	return nil
 }
 func (c *Client) onDownloadPause(_ *rpc2.Client, event *DownloadEvent, _ *interface{}) error {
-	c.onEvent("downloadPause", event)
+	c.evtTarget.Dispatch(PauseEvent, event)
 	return nil
 }
 func (c *Client) onDownloadStop(_ *rpc2.Client, event *DownloadEvent, _ *interface{}) error {
-	c.onEvent("downloadStop", event)
-	channel, ok := c.activeGIDs[event.GID]
-	if ok {
-		channel <- DownloadStoppedError
-	}
+	c.evtTarget.Dispatch(StopEvent, event)
 	return nil
 }
 func (c *Client) onDownloadComplete(_ *rpc2.Client, event *DownloadEvent, _ *interface{}) error {
-	c.onEvent("downloadComplete", event)
-	channel, ok := c.activeGIDs[event.GID]
-	if ok {
-		channel <- nil
-	}
-
+	c.evtTarget.Dispatch(CompleteEvent, event)
 	return nil
 }
 func (c *Client) onDownloadError(_ *rpc2.Client, event *DownloadEvent, _ *interface{}) error {
-	c.onEvent("downloadError", event)
-	channel, ok := c.activeGIDs[event.GID]
-	if ok {
-		channel <- DownloadError
-	}
+	c.evtTarget.Dispatch(ErrorEvent, event)
 	return nil
 }
-func (c *Client) onBtDownloadComplete(_ *rpc2.Client, event *DownloadEvent, _ *interface{}) error {
-	c.onEvent("btDownloadComplete", event)
+func (c *Client) onBTDownloadComplete(_ *rpc2.Client, event *DownloadEvent, _ *interface{}) error {
+	c.evtTarget.Dispatch(BTCompleteEvent, event)
 	return nil
 }
 
 // Subscribe registers the given listener for an event.
 // The listener will be called every time the event occurs.
-func (c *Client) Subscribe(name string, listener EventListener) {
-	listeners, ok := c.listeners[name]
-	if !ok {
-		listeners = make([]EventListener, 1)
-		c.listeners[name] = listeners
-	}
-
-	c.listeners[name] = append(listeners, listener)
+func (c *Client) Subscribe(evtType EventType, listener EventListener) UnsubscribeFunc {
+	return c.evtTarget.Subscribe(evtType, listener)
 }
 
 // WaitForDownload waits for a download denoted by its gid to finish.
 func (c *Client) WaitForDownload(gid string) error {
-	channel, ok := c.activeGIDs[gid]
-	if !ok {
-		channel = make(chan error, 1)
-		c.activeGIDs[gid] = channel
+	channel := make(chan error, 1)
+
+	sendResponse := func(err error) EventListener {
+		return func(*DownloadEvent) {
+			channel <- err
+		}
 	}
 
+	stopUnsub := c.Subscribe(StopEvent, sendResponse(ErrDownloadStopped))
+	completeUnsub := c.Subscribe(CompleteEvent, sendResponse(nil))
+	errUnsub := c.Subscribe(ErrorEvent, sendResponse(ErrDownloadError))
+
 	err := <-channel
-	delete(c.activeGIDs, gid)
+
+	stopUnsub()
+	completeUnsub()
+	errUnsub()
+
 	return err
 }
 
@@ -209,7 +176,7 @@ func (c *Client) DownloadWithContext(ctx context.Context, uris []string, options
 		}
 	case <-ctx.Done():
 		_ = gid.Delete()
-		err = DownloadCancelled
+		err = ctx.Err()
 	}
 
 	return
@@ -557,7 +524,6 @@ func (c *Client) ChangePosition(gid string, pos int, how PositionSetBehaviour) (
 // A download can contain multiple files and URIs are attached to each file.
 // fileIndex is used to select which file to remove/attach given URIs. fileIndex is 1-based.
 // position is used to specify where URIs are inserted in the existing waiting URI list. position is 0-based.
-// When position is nil, URIs are appended to the back of the list.
 //
 // This method first executes the removal and then the addition.
 // position is the position after URIs are removed, not the position when this method is called.
@@ -566,12 +532,8 @@ func (c *Client) ChangePosition(gid string, pos int, how PositionSetBehaviour) (
 // Returns two integers.
 // The first integer is the number of URIs deleted.
 // The second integer is the number of URIs added.
-func (c *Client) ChangeURIAt(gid string, fileIndex uint, delURIs []string, addURIs []string, position *uint) (uint, uint, error) {
-	args := c.getArgs(gid, fileIndex, delURIs, addURIs)
-
-	if position != nil {
-		args = append(args, position)
-	}
+func (c *Client) ChangeURIAt(gid string, fileIndex uint, delURIs []string, addURIs []string, position uint) (uint, uint, error) {
+	args := c.getArgs(gid, fileIndex, delURIs, addURIs, position)
 
 	var reply []uint
 	err := c.rpcClient.Call(aria2proto.ChangeURI, args, &reply)
@@ -593,7 +555,12 @@ func (c *Client) ChangeURIAt(gid string, fileIndex uint, delURIs []string, addUR
 // The first integer is the number of URIs deleted.
 // The second integer is the number of URIs added.
 func (c *Client) ChangeURI(gid string, fileIndex uint, delURIs []string, addURIs []string) (uint, uint, error) {
-	return c.ChangeURIAt(gid, fileIndex, delURIs, addURIs, nil)
+	args := c.getArgs(gid, fileIndex, delURIs, addURIs)
+
+	var reply []uint
+	err := c.rpcClient.Call(aria2proto.ChangeURI, args, &reply)
+
+	return reply[0], reply[1], err
 }
 
 // GetOptions returns Options of the download denoted by gid.
@@ -727,7 +694,7 @@ func (c *Client) SaveSession() error {
 
 // MultiCall executes multiple method calls in one request.
 // Returns a MethodResult for each MethodCall in order.
-func (c *Client) MultiCall(methods ...MethodCall) ([]MethodResult, error) {
+func (c *Client) MultiCall(methods ...*MethodCall) ([]MethodResult, error) {
 	var rawResults []json.RawMessage
 	err := c.rpcClient.Call(aria2proto.Multicall, c.getArgs(methods), &rawResults)
 
