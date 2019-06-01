@@ -14,6 +14,11 @@ import (
 	"os"
 )
 
+const (
+	// QueueEndPosition represents the end of the download queue.
+	QueueEndPosition = ^uint(0)
+)
+
 var (
 	// ErrDownloadError represents an error that occurred during the download
 	ErrDownloadError = errors.New("download encountered error")
@@ -206,8 +211,12 @@ func (c *Client) GetGID(gid string) GID {
 }
 
 func (c *Client) getArgs(args ...interface{}) []interface{} {
-	tokenArg := "token:" + c.authToken
-	return append([]interface{}{tokenArg}, args...)
+	if c.authToken == "" {
+		return args
+	} else {
+		tokenArg := "token:" + c.authToken
+		return append([]interface{}{tokenArg}, args...)
+	}
 }
 
 // AddURIAtPosition adds a new download at a specific position in the queue.
@@ -222,14 +231,14 @@ func (c *Client) getArgs(args ...interface{}) []interface{} {
 // the new download is appended to the end of the queue.
 //
 // This method returns the GID of the newly registered download.
-func (c *Client) AddURIAtPosition(uris []string, options *Options, position *uint) (GID, error) {
+func (c *Client) AddURIAtPosition(uris []string, position uint, options *Options) (GID, error) {
 	args := c.getArgs(uris)
 
 	if options != nil {
 		args = append(args, options)
 	}
 
-	if position != nil {
+	if position != QueueEndPosition {
 		args = append(args, position)
 	}
 
@@ -250,7 +259,7 @@ func (c *Client) AddURIAtPosition(uris []string, options *Options, position *uin
 //
 // This method returns the GID of the newly registered download.
 func (c *Client) AddURI(uris []string, options *Options) (GID, error) {
-	return c.AddURIAtPosition(uris, options, nil)
+	return c.AddURIAtPosition(uris, QueueEndPosition, options)
 }
 
 // AddTorrentAtPosition adds a BitTorrent download at a specific position in the queue.
@@ -267,7 +276,7 @@ func (c *Client) AddURI(uris []string, options *Options) (GID, error) {
 // the new download is appended to the end of the queue.
 //
 // This method returns the GID of the newly registered download.
-func (c *Client) AddTorrentAtPosition(torrent []byte, uris []string, options *Options, position *uint) (GID, error) {
+func (c *Client) AddTorrentAtPosition(torrent []byte, uris []string, position uint, options *Options) (GID, error) {
 	encodedTorrent := base64.StdEncoding.EncodeToString(torrent)
 	args := c.getArgs(encodedTorrent, uris)
 
@@ -275,7 +284,7 @@ func (c *Client) AddTorrentAtPosition(torrent []byte, uris []string, options *Op
 		args = append(args, options)
 	}
 
-	if position != nil {
+	if position != QueueEndPosition {
 		args = append(args, position)
 	}
 
@@ -298,7 +307,7 @@ func (c *Client) AddTorrentAtPosition(torrent []byte, uris []string, options *Op
 //
 // This method returns the GID of the newly registered download.
 func (c *Client) AddTorrent(torrent []byte, uris []string, options *Options) (GID, error) {
-	return c.AddTorrentAtPosition(torrent, uris, options, nil)
+	return c.AddTorrentAtPosition(torrent, uris, QueueEndPosition, options)
 }
 
 // AddMetalinkAtPosition adds a Metalink download at a specific position in the queue by uploading a “.metalink” file.
@@ -309,7 +318,7 @@ func (c *Client) AddTorrent(torrent []byte, uris []string, options *Options) (GI
 // the new download is appended to the end of the queue.
 //
 // This method returns an array of GIDs of newly registered downloads.
-func (c *Client) AddMetalinkAtPosition(metalink []byte, options *Options, position *uint) ([]GID, error) {
+func (c *Client) AddMetalinkAtPosition(metalink []byte, position uint, options *Options) ([]GID, error) {
 	encodedMetalink := base64.StdEncoding.EncodeToString(metalink)
 	args := c.getArgs(encodedMetalink)
 
@@ -317,7 +326,7 @@ func (c *Client) AddMetalinkAtPosition(metalink []byte, options *Options, positi
 		args = append(args, options)
 	}
 
-	if position != nil {
+	if position != QueueEndPosition {
 		args = append(args, position)
 	}
 
@@ -339,7 +348,7 @@ func (c *Client) AddMetalinkAtPosition(metalink []byte, options *Options, positi
 //
 // This method returns an array of GIDs of newly registered downloads.
 func (c *Client) AddMetalink(metalink []byte, options *Options) ([]GID, error) {
-	return c.AddMetalinkAtPosition(metalink, options, nil)
+	return c.AddMetalinkAtPosition(metalink, QueueEndPosition, options)
 }
 
 // Remove removes the download denoted by gid.
