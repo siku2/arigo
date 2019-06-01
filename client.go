@@ -5,13 +5,19 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/cenkalti/rpc2"
 	"github.com/cenkalti/rpc2/jsonrpc"
 	"github.com/gorilla/websocket"
-	"github.com/myanimestream/arigo/internal/wsrpc"
+	"github.com/myanimestream/arigo/internal/pkg/wsrpc"
+	"github.com/myanimestream/arigo/pkg/aria2proto"
 	"net/http"
 	"os"
+)
+
+var (
+	DownloadError        = errors.New("download encountered error")
+	DownloadStoppedError = errors.New("download stopped")
+	DownloadCancelled    = errors.New("download cancelled")
 )
 
 // URIs creates a string slice from the given uris.
@@ -55,12 +61,12 @@ func NewClient(rpcClient *rpc2.Client, authToken string) Client {
 		activeGIDs: make(map[string]chan error),
 	}
 
-	rpcClient.Handle("aria2.onDownloadStart", client.onDownloadStart)
-	rpcClient.Handle("aria2.onDownloadPause", client.onDownloadPause)
-	rpcClient.Handle("aria2.onDownloadStop", client.onDownloadStop)
-	rpcClient.Handle("aria2.onDownloadComplete", client.onDownloadComplete)
-	rpcClient.Handle("aria2.onDownloadError", client.onDownloadError)
-	rpcClient.Handle("aria2.onBtDownloadComplete", client.onBtDownloadComplete)
+	rpcClient.Handle(aria2proto.OnDownloadStart, client.onDownloadStart)
+	rpcClient.Handle(aria2proto.OnDownloadPause, client.onDownloadPause)
+	rpcClient.Handle(aria2proto.OnDownloadStop, client.onDownloadStop)
+	rpcClient.Handle(aria2proto.OnDownloadComplete, client.onDownloadComplete)
+	rpcClient.Handle(aria2proto.OnDownloadError, client.onDownloadError)
+	rpcClient.Handle(aria2proto.OnDownloadComplete, client.onBtDownloadComplete)
 
 	return client
 }
@@ -100,10 +106,6 @@ func (c *Client) Close() error {
 	return c.rpcClient.Close()
 }
 
-func (c *Client) String() string {
-	return fmt.Sprintf("ArigoClient")
-}
-
 func (c *Client) onEvent(name string, event *DownloadEvent) {
 	listeners, ok := c.listeners[name]
 	if !ok {
@@ -127,7 +129,7 @@ func (c *Client) onDownloadStop(_ *rpc2.Client, event *DownloadEvent, _ *interfa
 	c.onEvent("downloadStop", event)
 	channel, ok := c.activeGIDs[event.GID]
 	if ok {
-		channel <- errors.New("download stopped")
+		channel <- DownloadStoppedError
 	}
 	return nil
 }
@@ -144,7 +146,7 @@ func (c *Client) onDownloadError(_ *rpc2.Client, event *DownloadEvent, _ *interf
 	c.onEvent("downloadError", event)
 	channel, ok := c.activeGIDs[event.GID]
 	if ok {
-		channel <- errors.New("download encountered error")
+		channel <- DownloadError
 	}
 	return nil
 }
@@ -207,7 +209,7 @@ func (c *Client) DownloadWithContext(ctx context.Context, uris []string, options
 		}
 	case <-ctx.Done():
 		_ = gid.Delete()
-		err = errors.New("download cancelled")
+		err = DownloadCancelled
 	}
 
 	return
@@ -265,7 +267,7 @@ func (c *Client) AddURIAtPosition(uris []string, options *Options, position *uin
 	}
 
 	var reply string
-	err := c.rpcClient.Call("aria2.addUri", args, &reply)
+	err := c.rpcClient.Call(aria2proto.AddURI, args, &reply)
 
 	return c.GetGID(reply), err
 }
@@ -311,7 +313,7 @@ func (c *Client) AddTorrentAtPosition(torrent []byte, uris []string, options *Op
 	}
 
 	var reply string
-	err := c.rpcClient.Call("aria2.addTorrent", args, &reply)
+	err := c.rpcClient.Call(aria2proto.AddTorrent, args, &reply)
 
 	return c.GetGID(reply), err
 }
@@ -353,7 +355,7 @@ func (c *Client) AddMetalinkAtPosition(metalink []byte, options *Options, positi
 	}
 
 	var reply []string
-	err := c.rpcClient.Call("aria2.addMetalink", args, &reply)
+	err := c.rpcClient.Call(aria2proto.AddMetalink, args, &reply)
 
 	gids := make([]GID, len(reply))
 	for _, rawGID := range reply {
@@ -377,7 +379,7 @@ func (c *Client) AddMetalink(metalink []byte, options *Options) ([]GID, error) {
 // If the specified download is in progress, it is first stopped.
 // The status of the removed download becomes removed.
 func (c *Client) Remove(gid string) error {
-	return c.rpcClient.Call("aria2.remove", c.getArgs(gid), nil)
+	return c.rpcClient.Call(aria2proto.Remove, c.getArgs(gid), nil)
 }
 
 // ForceRemove removes the download denoted by gid.
@@ -385,7 +387,7 @@ func (c *Client) Remove(gid string) error {
 // without performing any actions which take time, such as contacting BitTorrent trackers to
 // unregister the download first.
 func (c *Client) ForceRemove(gid string) error {
-	return c.rpcClient.Call("aria2.forceRemove", c.getArgs(gid), nil)
+	return c.rpcClient.Call(aria2proto.ForceRemove, c.getArgs(gid), nil)
 }
 
 // Pause pauses the download denoted by gid.
@@ -393,12 +395,12 @@ func (c *Client) ForceRemove(gid string) error {
 // the download is placed in the front of the queue. While the status is paused,
 // the download is not started. To change status to waiting, use the Unpause() method.
 func (c *Client) Pause(gid string) error {
-	return c.rpcClient.Call("aria2.pause", c.getArgs(gid), nil)
+	return c.rpcClient.Call(aria2proto.Pause, c.getArgs(gid), nil)
 }
 
 // PauseAll is equal to calling Pause() for every active/waiting download.
 func (c *Client) PauseAll() error {
-	return c.rpcClient.Call("aria2.pauseAll", c.getArgs(), nil)
+	return c.rpcClient.Call(aria2proto.PauseAll, c.getArgs(), nil)
 }
 
 // ForcePause pauses the download denoted by gid.
@@ -406,23 +408,23 @@ func (c *Client) PauseAll() error {
 // without performing any actions which take time, such as contacting BitTorrent trackers to
 // unregister the download first.
 func (c *Client) ForcePause(gid string) error {
-	return c.rpcClient.Call("aria2.forcePause", c.getArgs(gid), nil)
+	return c.rpcClient.Call(aria2proto.ForcePause, c.getArgs(gid), nil)
 }
 
 // ForcePauseAll is equal to calling ForcePause() for every active/waiting download.
 func (c *Client) ForcePauseAll() error {
-	return c.rpcClient.Call("aria2.forcePauseAll", c.getArgs(), nil)
+	return c.rpcClient.Call(aria2proto.ForcePauseAll, c.getArgs(), nil)
 }
 
 // Unpause changes the status of the download denoted by gid from paused to waiting,
 // making the download eligible to be restarted.
 func (c *Client) Unpause(gid string) error {
-	return c.rpcClient.Call("aria2.unpause", c.getArgs(gid), nil)
+	return c.rpcClient.Call(aria2proto.Unpause, c.getArgs(gid), nil)
 }
 
 // UnpauseAll is equal to calling Unpause() for every paused download.
 func (c *Client) UnpauseAll() error {
-	return c.rpcClient.Call("aria2.unpauseAll", c.getArgs(), nil)
+	return c.rpcClient.Call(aria2proto.UnpauseAll, c.getArgs(), nil)
 }
 
 // TellStatus returns the progress of the download denoted by gid.
@@ -431,7 +433,7 @@ func (c *Client) UnpauseAll() error {
 // This is useful when you just want specific keys and avoid unnecessary transfers.
 func (c *Client) TellStatus(gid string, keys ...string) (Status, error) {
 	var reply Status
-	err := c.rpcClient.Call("aria2.tellStatus", c.getArgs(gid, keys), &reply)
+	err := c.rpcClient.Call(aria2proto.TellStatus, c.getArgs(gid, keys), &reply)
 
 	return reply, err
 }
@@ -440,7 +442,7 @@ func (c *Client) TellStatus(gid string, keys ...string) (Status, error) {
 // The response is a slice of URIs.
 func (c *Client) GetURIs(gid string) ([]URI, error) {
 	var reply []URI
-	err := c.rpcClient.Call("aria2.getUris", c.getArgs(gid), &reply)
+	err := c.rpcClient.Call(aria2proto.GetURIs, c.getArgs(gid), &reply)
 
 	return reply, err
 }
@@ -449,7 +451,7 @@ func (c *Client) GetURIs(gid string) ([]URI, error) {
 // The response is a slice of Files.
 func (c *Client) GetFiles(gid string) ([]File, error) {
 	var reply []File
-	err := c.rpcClient.Call("aria2.getFiles", c.getArgs(gid), &reply)
+	err := c.rpcClient.Call(aria2proto.GetFiles, c.getArgs(gid), &reply)
 
 	return reply, err
 }
@@ -459,7 +461,7 @@ func (c *Client) GetFiles(gid string) ([]File, error) {
 // The response is a slice of Peers.
 func (c *Client) GetPeers(gid string) ([]Peer, error) {
 	var reply []Peer
-	err := c.rpcClient.Call("aria2.getPeers", c.getArgs(gid), &reply)
+	err := c.rpcClient.Call(aria2proto.GetPeers, c.getArgs(gid), &reply)
 
 	return reply, err
 }
@@ -468,7 +470,7 @@ func (c *Client) GetPeers(gid string) ([]Peer, error) {
 // Returns a slice of FileServers.
 func (c *Client) GetServers(gid string) ([]FileServers, error) {
 	var reply []FileServers
-	err := c.rpcClient.Call("aria2.getServers", c.getArgs(gid), &reply)
+	err := c.rpcClient.Call(aria2proto.GetServers, c.getArgs(gid), &reply)
 
 	return reply, err
 }
@@ -477,7 +479,7 @@ func (c *Client) GetServers(gid string) ([]FileServers, error) {
 // keys does the same as in the TellStatus() method.
 func (c *Client) TellActive(keys ...string) ([]Status, error) {
 	var reply []Status
-	err := c.rpcClient.Call("aria2.tellActive", c.getArgs(keys), &reply)
+	err := c.rpcClient.Call(aria2proto.TellActive, c.getArgs(keys), &reply)
 
 	return reply, err
 }
@@ -494,7 +496,7 @@ func (c *Client) TellActive(keys ...string) ([]Status, error) {
 // If specified, the returned Statuses only contain the keys passed to the method.
 func (c *Client) TellWaiting(offset int, num uint, keys ...string) ([]Status, error) {
 	var reply []Status
-	err := c.rpcClient.Call("aria2.tellWaiting", c.getArgs(offset, num, keys), &reply)
+	err := c.rpcClient.Call(aria2proto.TellWaiting, c.getArgs(offset, num, keys), &reply)
 
 	return reply, err
 }
@@ -511,7 +513,7 @@ func (c *Client) TellWaiting(offset int, num uint, keys ...string) ([]Status, er
 // If specified, the returned Statuses only contain the keys passed to the method.
 func (c *Client) TellStopped(offset int, num uint, keys ...string) ([]Status, error) {
 	var reply []Status
-	err := c.rpcClient.Call("aria2.tellStopped", c.getArgs(offset, num, keys), &reply)
+	err := c.rpcClient.Call(aria2proto.TellStopped, c.getArgs(offset, num, keys), &reply)
 
 	return reply, err
 }
@@ -546,7 +548,7 @@ func (c *Client) ChangePosition(gid string, pos int, how PositionSetBehaviour) (
 	}
 
 	var reply int
-	err := c.rpcClient.Call("aria2.changePosition", args, &reply)
+	err := c.rpcClient.Call(aria2proto.ChangePosition, args, &reply)
 
 	return reply, err
 }
@@ -572,7 +574,7 @@ func (c *Client) ChangeURIAt(gid string, fileIndex uint, delURIs []string, addUR
 	}
 
 	var reply []uint
-	err := c.rpcClient.Call("aria2.changeUri", args, &reply)
+	err := c.rpcClient.Call(aria2proto.ChangeURI, args, &reply)
 
 	return reply[0], reply[1], err
 }
@@ -599,7 +601,7 @@ func (c *Client) ChangeURI(gid string, fileIndex uint, delURIs []string, addURIs
 // in configuration files or RPC methods.
 func (c *Client) GetOptions(gid string) (Options, error) {
 	var reply Options
-	err := c.rpcClient.Call("aria2.getOption", c.getArgs(gid), &reply)
+	err := c.rpcClient.Call(aria2proto.GetOptions, c.getArgs(gid), &reply)
 
 	return reply, err
 }
@@ -623,7 +625,7 @@ func (c *Client) GetOptions(gid string) (Options, error) {
 // 	- MaxDownloadLimit
 // 	- MaxUploadLimit
 func (c *Client) ChangeOptions(gid string, options Options) error {
-	return c.rpcClient.Call("aria2.changeOption", c.getArgs(gid, options), nil)
+	return c.rpcClient.Call(aria2proto.ChangeOptions, c.getArgs(gid, options), nil)
 }
 
 // GetGlobalOptions returns the global options.
@@ -634,7 +636,7 @@ func (c *Client) ChangeOptions(gid string, options Options) error {
 // the response contains keys returned by the GetOption() method.
 func (c *Client) GetGlobalOptions() (Options, error) {
 	var reply Options
-	err := c.rpcClient.Call("aria2.getGlobalOption", c.getArgs(), &reply)
+	err := c.rpcClient.Call(aria2proto.GetGlobalOptions, c.getArgs(), &reply)
 
 	return reply, err
 }
@@ -669,31 +671,31 @@ func (c *Client) GetGlobalOptions() (Options, error) {
 // To stop logging, specify an empty string as the parameter value.
 // Note that log file is always opened in append mode.
 func (c *Client) ChangeGlobalOptions(options Options) error {
-	return c.rpcClient.Call("aria2.changeGlobalOption", c.getArgs(options), nil)
+	return c.rpcClient.Call(aria2proto.ChangeGlobalOptions, c.getArgs(options), nil)
 }
 
 // GetGlobalStats returns global statistics such as the overall download and upload speeds.
 func (c *Client) GetGlobalStats() (Stats, error) {
 	var reply Stats
-	err := c.rpcClient.Call("aria2.getGlobalStat", c.getArgs(), &reply)
+	err := c.rpcClient.Call(aria2proto.GetGlobalStats, c.getArgs(), &reply)
 
 	return reply, err
 }
 
 // PurgeDownloadResults purges completed/error/removed downloads to free memory
 func (c *Client) PurgeDownloadResults() error {
-	return c.rpcClient.Call("aria2.purgeDownloadResult", c.getArgs(), nil)
+	return c.rpcClient.Call(aria2proto.PurgeDownloadResults, c.getArgs(), nil)
 }
 
 // RemoveDownloadResult removes a completed/error/removed download denoted by gid from memory.
 func (c *Client) RemoveDownloadResult(gid string) error {
-	return c.rpcClient.Call("aria2.removeDownloadResult", c.getArgs(gid), nil)
+	return c.rpcClient.Call(aria2proto.RemoveDownloadResult, c.getArgs(gid), nil)
 }
 
 // GetVersion returns the version of aria2 and the list of enabled features.
 func (c *Client) GetVersion() (VersionInfo, error) {
 	var reply VersionInfo
-	err := c.rpcClient.Call("aria2.getVersion", c.getArgs(), &reply)
+	err := c.rpcClient.Call(aria2proto.GetVersion, c.getArgs(), &reply)
 
 	return reply, err
 }
@@ -701,33 +703,33 @@ func (c *Client) GetVersion() (VersionInfo, error) {
 // GetSessionInfo returns session information.
 func (c *Client) GetSessionInfo() (SessionInfo, error) {
 	var reply SessionInfo
-	err := c.rpcClient.Call("aria2.getSessionInfo", c.getArgs(), &reply)
+	err := c.rpcClient.Call(aria2proto.GetSessionInfo, c.getArgs(), &reply)
 
 	return reply, err
 }
 
 // Shutdown shuts down aria2.
 func (c *Client) Shutdown() error {
-	return c.rpcClient.Call("aria2.shutdown", c.getArgs(), nil)
+	return c.rpcClient.Call(aria2proto.Shutdown, c.getArgs(), nil)
 }
 
 // ForceShutdown shuts down aria2.
 // Behaves like the Shutdown() method but doesn't perform any actions which take time,
 // such as contacting BitTorrent trackers to unregister downloads first.
 func (c *Client) ForceShutdown() error {
-	return c.rpcClient.Call("aria2.forceShutdown", c.getArgs(), nil)
+	return c.rpcClient.Call(aria2proto.ForceShutdown, c.getArgs(), nil)
 }
 
 // SaveSession saves the current session to a file specified by the SaveSession option.
 func (c *Client) SaveSession() error {
-	return c.rpcClient.Call("aria2.saveSession", c.getArgs(), nil)
+	return c.rpcClient.Call(aria2proto.SaveSession, c.getArgs(), nil)
 }
 
 // MultiCall executes multiple method calls in one request.
 // Returns a MethodResult for each MethodCall in order.
 func (c *Client) MultiCall(methods ...MethodCall) ([]MethodResult, error) {
 	var rawResults []json.RawMessage
-	err := c.rpcClient.Call("aria2.multicall", c.getArgs(methods), &rawResults)
+	err := c.rpcClient.Call(aria2proto.Multicall, c.getArgs(methods), &rawResults)
 
 	results := make([]MethodResult, len(rawResults))
 

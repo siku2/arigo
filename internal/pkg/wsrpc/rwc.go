@@ -1,3 +1,5 @@
+// Package wsrpc provides a ReadWriteCloser which operates on a WebSocket
+// connection.
 package wsrpc
 
 import (

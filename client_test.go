@@ -44,6 +44,4 @@ func ExampleClient() {
 	}
 
 	fmt.Println(status.Status)
-
-	// Output: completed
 }
