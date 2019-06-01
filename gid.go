@@ -12,6 +12,16 @@ func (gid *GID) String() string {
 	return gid.GID
 }
 
+// Subscribe subscribes to the given event but only dispatches events concerning
+// this GID.
+func (gid *GID) Subscribe(evtType EventType, listener EventListener) UnsubscribeFunc {
+	return gid.client.Subscribe(evtType, func(event *DownloadEvent) {
+		if event.GID == gid.GID {
+			listener(event)
+		}
+	})
+}
+
 // Delete removes the download from disk as well as from aria2.
 func (gid *GID) Delete() error {
 	return gid.client.Delete(gid.GID)

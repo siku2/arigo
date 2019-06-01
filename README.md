@@ -5,10 +5,19 @@
 A client library for the aria2 RPC interface.
 
 Features:
- - Complete implementation of all methods and their return values
- - Connection over WebSocket which makes it possible to receive events
- - Object-oriented approach for individual downloads
+- Complete implementation of all supported methods.
+- Bidirectional communication over WebSocket which makes it 
+possible to receive events and know when a download has completed.
 
+
+arigo currently doesn't start and manage the aria2c process for you.
+To start aria2 use the following command:
+```bash
+aria2c --enable-rpc --rpc-listen-all
+```
+
+If aria2 is not installed then head on to
+https://aria2.github.io/ and follow the instructions there.
 
 ## Example
 ```go
