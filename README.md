@@ -25,7 +25,7 @@ func main() {
 		panic(err)
 	}
 	
-	// Download is an utility method which calls AddURI and 
+	// Download is a utility method which calls AddURI and 
 	// then waits for the download to complete
 	status, err := c.Download(arigo.URIs("https://example.org/file"), nil)
 	if err != nil {
