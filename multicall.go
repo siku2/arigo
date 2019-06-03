@@ -1,11 +1,14 @@
 package arigo
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"github.com/myanimestream/arigo/pkg/aria2proto"
+)
 
 // MethodCallError represents an error returned by aria2 for a MethodCall
 type MethodCallError struct {
-	Code    uint `json:",string"`
-	Message string
+	Code    uint   `json:"code,string"`
+	Message string `json:"message"`
 }
 
 func (e *MethodCallError) Error() string {

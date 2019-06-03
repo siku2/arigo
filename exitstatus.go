@@ -1,5 +1,7 @@
 package arigo
 
+//go:generate stringer -type=ExitStatus
+
 // ExitStatus is an integer returned by aria2 for downloads which describes why a download exited.
 // Please see https://aria2.github.io/manual/en/html/aria2c.html#exit-status
 type ExitStatus uint8

@@ -2,6 +2,8 @@ package arigo
 
 import "sync"
 
+//go:generate stringer -type=EventType
+
 // EventType represents a DownloadEvent which can be subscribed to on the
 // Client.
 type EventType uint

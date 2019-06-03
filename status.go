@@ -25,55 +25,63 @@ const (
 
 // Status holds information for a download.
 type Status struct {
-	GID             string         // gid of the download
-	Status          DownloadStatus // Download status
-	TotalLength     uint           `json:",string"` // Total length of the download in bytes
-	CompletedLength uint           `json:",string"` // Completed length of the download in bytes
-	UploadLength    uint           `json:",string"` // Uploaded length of the download in bytes
+	GID             string         `json:"gid"`                    // gid of the download
+	Status          DownloadStatus `json:"status"`                 // Download status
+	TotalLength     uint           `json:"totalLength,string"`     // Total length of the download in bytes
+	CompletedLength uint           `json:"completedLength,string"` // Completed length of the download in bytes
+	UploadLength    uint           `json:"uploadLength,string"`    // Uploaded length of the download in bytes
 
 	// Hexadecimal representation of the download progress.
 	// The highest bit corresponds to the piece at index 0. Any set bits indicate loaded pieces,
 	// while unset bits indicate not yet loaded and/or missing pieces.
 	// Any overflow bits at the end are set to zero.
 	// When the download was not started yet, this will be an empty string.
-	BitField      string
-	DownloadSpeed uint       `json:",string"` // Download speed of this download measured in bytes/sec
-	UploadSpeed   uint       `json:",string"` // Upload speed of this download measured in bytes/sec
-	InfoHash      string     // InfoHash. BitTorrent only
-	NumSeeders    uint       `json:",string"` // The number of seeders aria2 has connected to. BitTorrent only
-	Seeder        bool       `json:",string"` // true if the local endpoint is a seeder. Otherwise false. BitTorrent only
-	PieceLength   uint       `json:",string"` // Piece length in bytes
-	NumPieces     uint       `json:",string"` // The number of pieces
-	Connections   uint       `json:",string"` // The number of peers/servers aria2 has connected to
-	ErrorCode     ExitStatus `json:",string"` // The code of the last error for this item, if any.
-	ErrorMessage  string     // The human readable error message associated to ErrorCode
+	BitField      string `json:"bitfield"`
+	DownloadSpeed uint   `json:"downloadSpeed,string"` // Download speed of this download measured in bytes/sec
+	UploadSpeed   uint   `json:"uploadSpeed,string"`   // Upload speed of this download measured in bytes/sec
+	InfoHash      string `json:"infoHash"`             // InfoHash. BitTorrent only
+
+	// The number of seeders aria2 has connected to. BitTorrent only
+	NumSeeders uint `json:"numSeeders,string"`
+
+	// true if the local endpoint is a seeder. Otherwise false. BitTorrent only
+	Seeder       bool       `json:"seeder,string"`
+	PieceLength  uint       `json:"pieceLength,string"` // Piece length in bytes
+	NumPieces    uint       `json:"numPieces,string"`   // The number of pieces
+	Connections  uint       `json:"connections,string"` // The number of peers/servers aria2 has connected to
+	ErrorCode    ExitStatus `json:"errorCode,string"`   // The code of the last error for this item, if any.
+	ErrorMessage string     `json:"errorMessage"`       // The human readable error message associated to ErrorCode
 
 	// List of GIDs which are generated as the result of this download.
 	// For example, when aria2 downloads a Metalink file, it generates downloads described in the Metalink
 	// (see the --follow-metalink option). This value is useful to track auto-generated downloads.
 	// If there are no such downloads, this will be an empty slice
-	FollowedBy []string
+	FollowedBy []string `json:"followedBy"`
 
 	// The reverse link for followedBy.
-	// A download included in followedBy has this object’s GID in its following value
-	Following string
+	// A download included in followedBy has this object’s GID in its following
+	// value.
+	Following string `json:"following"`
 
 	// GID of a parent download. Some downloads are a part of another download.
 	// For example, if a file in a Metalink has BitTorrent resources,
 	// the downloads of “.torrent” files are parts of that parent.
 	// If this download has no parent, this will be an empty string
-	BelongsTo  string
-	Dir        string           // Directory to save files
-	Files      []File           // Slice of files.
-	BitTorrent BitTorrentStatus // Information retrieved from the .torrent (file). BitTorrent only
+	BelongsTo  string           `json:"belongsTo"`
+	Dir        string           `json:"dir"`        // Directory to save files
+	Files      []File           `json:"files"`      // Slice of files.
+	BitTorrent BitTorrentStatus `json:"bittorrent"` // Information retrieved from the .torrent (file). BitTorrent only
 
-	// The number of verified number of bytes while the files are being hash checked.
+	// The number of verified number of bytes while the files are being has
+	// checked.
 	// This key exists only when this download is being hash checked
-	VerifiedLength         uint `json:",string"`
-	VerifyIntegrityPending bool `json:",string"` // true if this download is waiting for the hash check in a queue.
+	VerifiedLength uint `json:"verifiedLength,string"`
+
+	// true if this download is waiting for the hash check in a queue.
+	VerifyIntegrityPending bool `json:"verifyIntegrityPending,string"`
 }
 
-// UNIXTime is just time.Time but it marshals to a unix timestamp.
+// UNIXTime is a wrapper around time.Time that marshals to a unix timestamp.
 type UNIXTime struct {
 	time.Time
 }
@@ -108,15 +116,16 @@ const (
 // BitTorrentStatus holds information for a BitTorrent download
 type BitTorrentStatus struct {
 	// List of lists of announce URIs.
-	// If the torrent contains announce and no announce-list, announce is converted to the announce-list format
-	AnnounceList     []URI
-	Comment          string               // The comment of the torrent
-	CreationDateUNIX UNIXTime             `json:",string"` // The creation time of the torrent
-	Mode             TorrentMode          // File mode of the torrent
-	Info             BitTorrentStatusInfo // Information from the info dictionary
+	// If the torrent contains announce and no announce-list,
+	// announce is converted to the announce-list format
+	AnnounceList []URI                `json:"announceList"`
+	Comment      string               `json:"comment"`             // The comment of the torrent
+	CreationDate UNIXTime             `json:"creationDate,string"` // The creation time of the torrent
+	Mode         TorrentMode          `json:"mode"`                // File mode of the torrent
+	Info         BitTorrentStatusInfo `json:"info"`                // Information from the info dictionary
 }
 
 // A BitTorrentStatusInfo holds information from the info dictionary.
 type BitTorrentStatusInfo struct {
-	Name string // name in info dictionary
+	Name string `json:"name"` // name in info dictionary
 }
