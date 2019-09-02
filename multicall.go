@@ -2,7 +2,6 @@ package arigo
 
 import (
 	"encoding/json"
-	"github.com/myanimestream/arigo/pkg/aria2proto"
 )
 
 // MethodCallError represents an error returned by aria2 for a MethodCall
