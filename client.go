@@ -58,7 +58,7 @@ func NewClient(rpcClient *rpc2.Client, authToken string) Client {
 	rpcClient.Handle(aria2proto.OnDownloadStop, client.onDownloadStop)
 	rpcClient.Handle(aria2proto.OnDownloadComplete, client.onDownloadComplete)
 	rpcClient.Handle(aria2proto.OnDownloadError, client.onDownloadError)
-	rpcClient.Handle(aria2proto.OnDownloadComplete, client.onBTDownloadComplete)
+	rpcClient.Handle(aria2proto.OnBTDownloadComplete, client.onBTDownloadComplete)
 
 	return client
 }
