@@ -8,8 +8,8 @@ import (
 	"github.com/cenkalti/rpc2"
 	"github.com/cenkalti/rpc2/jsonrpc"
 	"github.com/gorilla/websocket"
-	"github.com/myanimestream/arigo/internal/pkg/wsrpc"
-	"github.com/myanimestream/arigo/pkg/aria2proto"
+	"github.com/jae-jae/arigo/internal/pkg/wsrpc"
+	"github.com/jae-jae/arigo/pkg/aria2proto"
 	"net/http"
 	"os"
 )
@@ -58,7 +58,7 @@ func NewClient(rpcClient *rpc2.Client, authToken string) Client {
 	rpcClient.Handle(aria2proto.OnDownloadStop, client.onDownloadStop)
 	rpcClient.Handle(aria2proto.OnDownloadComplete, client.onDownloadComplete)
 	rpcClient.Handle(aria2proto.OnDownloadError, client.onDownloadError)
-	rpcClient.Handle(aria2proto.OnDownloadComplete, client.onBTDownloadComplete)
+	rpcClient.Handle(aria2proto.OnBTDownloadComplete, client.onBTDownloadComplete)
 
 	return client
 }

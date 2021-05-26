@@ -1,4 +1,4 @@
-module github.com/myanimestream/arigo
+module github.com/jae-jae/arigo
 
 go 1.12
 
