@@ -5,13 +5,14 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"net/http"
+	"os"
+
 	"github.com/cenkalti/rpc2"
 	"github.com/cenkalti/rpc2/jsonrpc"
 	"github.com/gorilla/websocket"
 	"github.com/jae-jae/arigo/internal/pkg/wsrpc"
 	"github.com/jae-jae/arigo/pkg/aria2proto"
-	"net/http"
-	"os"
 )
 
 const (
@@ -212,7 +213,10 @@ func (c *Client) GetGID(gid string) GID {
 
 func (c *Client) getArgs(args ...interface{}) []interface{} {
 	if c.authToken == "" {
-		return args
+		if args != nil {
+			return args
+		}
+		return []interface{}{}
 	} else {
 		tokenArg := "token:" + c.authToken
 		return append([]interface{}{tokenArg}, args...)
