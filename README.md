@@ -1,4 +1,5 @@
 # arigo
+[![Build Status](https://github.com/myanimestream/arigo/actions/workflows/build.yml/badge.svg)](https://github.com/myanimestream/arigo/actions/workflows/build.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/myanimestream/arigo)](https://goreportcard.com/report/github.com/myanimestream/arigo)
 [![Documentation](https://godoc.org/github.com/github.com/myanimestream/arigo?status.svg)](http://godoc.org/github.com/myanimestream/arigo)
 
