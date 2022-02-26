@@ -11,8 +11,8 @@ import (
 	"github.com/cenkalti/rpc2"
 	"github.com/cenkalti/rpc2/jsonrpc"
 	"github.com/gorilla/websocket"
-	"github.com/jae-jae/arigo/internal/pkg/wsrpc"
-	"github.com/jae-jae/arigo/pkg/aria2proto"
+	"github.com/siku2/arigo/internal/pkg/wsrpc"
+	"github.com/siku2/arigo/pkg/aria2proto"
 )
 
 const (
