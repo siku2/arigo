@@ -47,8 +47,8 @@ type Client struct {
 // NewClient creates a new client.
 // The client needs to be manually ran
 // using the Run method.
-func NewClient(rpcClient *rpc2.Client, authToken string) Client {
-	client := Client{
+func NewClient(rpcClient *rpc2.Client, authToken string) *Client {
+	client := &Client{
 		rpcClient: rpcClient,
 		authToken: authToken,
 		closed:    false,
@@ -64,12 +64,12 @@ func NewClient(rpcClient *rpc2.Client, authToken string) Client {
 	return client
 }
 
-// Dial creates a new connection to an aria2 rpc interface.
+// DialContext creates a new connection to an aria2 rpc interface.
 // It returns a new client.
-func Dial(url string, authToken string) (client Client, err error) {
+func DialContext(ctx context.Context, url string, authToken string) (client *Client, err error) {
 	dialer := websocket.Dialer{}
 
-	ws, _, err := dialer.Dial(url, http.Header{})
+	ws, _, err := dialer.DialContext(ctx, url, http.Header{})
 	if err != nil {
 		return
 	}
@@ -82,6 +82,12 @@ func Dial(url string, authToken string) (client Client, err error) {
 	go client.Run()
 
 	return
+}
+
+// Dial creates a new connection to an aria2 rpc interface.
+// It returns a new client.
+func Dial(url string, authToken string) (client *Client, err error) {
+	return DialContext(context.Background(), url, authToken)
 }
 
 // Run runs the underlying rpcClient.
@@ -589,21 +595,21 @@ func (c *Client) GetOptions(gid string) (Options, error) {
 // ChangeOptions changes options of the download denoted by gid dynamically.
 //
 // Except for following options, all options are available:
-// 	- DryRun
-//  - MetalinkBaseURI
-//  - ParameterizedURI
-//  - Pause
-//  - PieceLength
-//  - RPCSaveUploadMetadata
+//   - DryRun
+//   - MetalinkBaseURI
+//   - ParameterizedURI
+//   - Pause
+//   - PieceLength
+//   - RPCSaveUploadMetadata
 //
 // Except for the following options, changing the other options of active download makes it restart
 // (restart itself is managed by aria2, and no user intervention is required):
-// 	- BtMaxPeers
-// 	- BtRequestPeerSpeedLimit
-// 	- BtRemoveUnselectedFile
-// 	- ForceSave
-// 	- MaxDownloadLimit
-// 	- MaxUploadLimit
+//   - BtMaxPeers
+//   - BtRequestPeerSpeedLimit
+//   - BtRemoveUnselectedFile
+//   - ForceSave
+//   - MaxDownloadLimit
+//   - MaxUploadLimit
 func (c *Client) ChangeOptions(gid string, options Options) error {
 	return c.rpcClient.Call(aria2proto.ChangeOptions, c.getArgs(gid, options), nil)
 }
@@ -626,26 +632,26 @@ func (c *Client) GetGlobalOptions() (Options, error) {
 // ChangeGlobalOptions changes global options dynamically.
 //
 // The following global options are available:
-// 	- BtMaxOpenFiles
-// 	- DownloadResult
-// 	- KeepUnfinishedDownloadResult
-// 	- Log
-// 	- LogLevel
-// 	- MaxConcurrentDownloads
-// 	- MaxDownloadResult
-// 	- MaxOverallDownloadLimit
-// 	- MaxOverallUploadLimit
-// 	- OptimizeConcurrentDownloads
-// 	- SaveCookies
-// 	- SaveSession
-// 	- ServerStatOf
+//   - BtMaxOpenFiles
+//   - DownloadResult
+//   - KeepUnfinishedDownloadResult
+//   - Log
+//   - LogLevel
+//   - MaxConcurrentDownloads
+//   - MaxDownloadResult
+//   - MaxOverallDownloadLimit
+//   - MaxOverallUploadLimit
+//   - OptimizeConcurrentDownloads
+//   - SaveCookies
+//   - SaveSession
+//   - ServerStatOf
 //
 // Except for the following options, all other Options are available as well:
-// 	- Checksum
-// 	- IndexOut
-// 	- Out
-// 	- Pause
-// 	- SelectFile
+//   - Checksum
+//   - IndexOut
+//   - Out
+//   - Pause
+//   - SelectFile
 //
 // With the log option, you can dynamically start logging or change log file.
 // To stop logging, specify an empty string as the parameter value.
