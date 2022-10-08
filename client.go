@@ -421,6 +421,10 @@ func (c *Client) UnpauseAll() error {
 // This is useful when you just want specific keys and avoid unnecessary transfers.
 func (c *Client) TellStatus(gid string, keys ...string) (Status, error) {
 	var reply Status
+	// convert nil to empty slice, prevent error The parameter at 1 has wrong type.
+	if len(keys) == 0 {
+		keys = make([]string, 0)
+	}
 	err := c.rpcClient.Call(aria2proto.TellStatus, c.getArgs(gid, keys), &reply)
 
 	return reply, err
