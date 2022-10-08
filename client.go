@@ -141,8 +141,10 @@ func (c *Client) WaitForDownload(gid string) error {
 	channel := make(chan error, 1)
 
 	sendResponse := func(err error) EventListener {
-		return func(*DownloadEvent) {
-			channel <- err
+		return func(ev *DownloadEvent) {
+			if ev.GID == gid {
+				channel <- err
+			}
 		}
 	}
 
