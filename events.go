@@ -122,10 +122,10 @@ func (t *eventTarget) Dispatch(evtType EventType, event *DownloadEvent) {
 
 	wg.Add(len(listeners))
 	for _, listener := range listeners {
-		go func() {
-			listener.f(event)
+		go func(l listenerData) {
+			l.f(event)
 			wg.Done()
-		}()
+		}(listener)
 	}
 
 	wg.Wait()

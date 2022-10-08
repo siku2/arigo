@@ -62,18 +62,25 @@ func (rwc *ReadWriteCloser) Write(p []byte) (n int, err error) {
 		}
 	}
 	if err != nil || n == len(p) {
-		err = rwc.Close()
+		err = rwc.w.Close()
+		rwc.w = nil
 	}
 
 	return
 }
 
 // Close the rwc and the underlying WebSocket connection
-func (rwc *ReadWriteCloser) Close() (err error) {
+func (rwc *ReadWriteCloser) Close() error {
+	var err error
 	if rwc.w != nil {
-		err = rwc.w.Close()
+		if err = rwc.w.Close(); err != nil {
+			return err
+		}
 		rwc.w = nil
 	}
-
-	return
+	if rwc.ws != nil {
+		err = rwc.ws.Close()
+		rwc.ws = nil
+	}
+	return err
 }
