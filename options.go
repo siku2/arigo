@@ -104,7 +104,7 @@ type Options struct {
 	RPCSaveUploadMetadata         string  `json:"rpc-save-upload-metadata,omitempty"`
 	SeedRatio                     float32 `json:"seed-ratio,omitempty,string"`
 	SeedTime                      uint    `json:"seed-time,omitempty,string"`
-	SelectFile                    bool    `json:"select-file,omitempty,string"`
+	SelectFile                    string  `json:"select-file,omitempty"`
 	Split                         uint    `json:"split,omitempty,string"`
 	SSHHostKeyMD                  string  `json:"ssh-host-key-md,omitempty"`
 	StreamPieceSelector           string  `json:"stream-piece-selector,omitempty"`
