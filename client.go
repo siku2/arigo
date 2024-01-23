@@ -221,7 +221,7 @@ func (c *Client) GetGID(gid string) GID {
 
 func (c *Client) getArgs(args ...interface{}) []interface{} {
 	if c.authToken == "" {
-		if args != nil {
+		if len(args) != 0 {
 			return args
 		}
 		return []interface{}{}
