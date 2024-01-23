@@ -18,7 +18,7 @@ const (
 	// StatusError represents downloads that were stopped because of error
 	StatusError DownloadStatus = "error"
 	// StatusCompleted represents stopped and completed downloads
-	StatusCompleted DownloadStatus = "completed"
+	StatusCompleted DownloadStatus = "complete"
 	// StatusRemoved represents the downloads removed by user
 	StatusRemoved DownloadStatus = "removed"
 )
