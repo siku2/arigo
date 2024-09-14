@@ -2,13 +2,27 @@ package arigo
 
 import (
 	"encoding/json"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestStatusFormat(t *testing.T) {
 	data := []byte(`{
 		"bitfield": "0000000000",
+		"bittorrent": {
+			"announceList": [
+				[
+					"http://tracker.example.com:80/announce"
+				]
+			],
+			"comment": "Torrent downloaded from https://example.com",
+			"creationDate": 1520238244,
+			"info": {
+				"name": "example.mkv"
+			},
+			"mode": "multi"
+		},
 		"completedLength": "901120",
 		"connections": "1",
 		"dir": "/downloads",
