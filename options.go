@@ -70,14 +70,14 @@ type Options struct {
 	HTTPSProxyPasswd              string  `json:"https-proxy-passwd,omitempty"`
 	HTTPSProxyUser                string  `json:"https-proxy-user,omitempty"`
 	IndexOut                      uint    `json:"index-out,omitempty,string"`
-	LowestSpeedLimit              uint    `json:"lowest-speed-limit,omitempty,string"`
+	LowestSpeedLimit              string  `json:"lowest-speed-limit,omitempty"`
 	MaxConnectionPerServer        uint    `json:"max-connection-per-server,omitempty,string"`
-	MaxDownloadLimit              uint    `json:"max-download-limit,omitempty,string"`
+	MaxDownloadLimit              string  `json:"max-download-limit,omitempty"`
 	MaxFileNotFound               uint    `json:"max-file-not-found,omitempty,string"`
-	MaxMMapLimit                  uint    `json:"max-mmap-limit,omitempty,string"`
+	MaxMMapLimit                  string  `json:"max-mmap-limit,omitempty"`
 	MaxResumeFailureTries         uint    `json:"max-resume-failure-tries,omitempty,string"`
 	MaxTries                      uint    `json:"max-tries,omitempty,string"`
-	MaxUploadLimit                uint    `json:"max-upload-limit,omitempty,string"`
+	MaxUploadLimit                string  `json:"max-upload-limit,omitempty"`
 	MetalinkBaseURI               string  `json:"metalink-base-uri,omitempty"`
 	MetalinkEnableUniqueProtocol  bool    `json:"metalink-enable-unique-protocol,omitempty,string"`
 	MetalinkLanguage              string  `json:"metalink-language,omitempty"`
@@ -85,8 +85,8 @@ type Options struct {
 	MetalinkOS                    string  `json:"metalink-os,omitempty"`
 	MetalinkPreferredProtocol     string  `json:"metalink-preferred-protocol,omitempty"`
 	MetalinkVersion               string  `json:"metalink-version,omitempty"`
-	MinSplitSize                  uint    `json:"min-split-size,omitempty,string"`
-	NoFileAllocationLimit         bool    `json:"no-file-allocation-limit,omitempty,string"`
+	MinSplitSize                  string  `json:"min-split-size,omitempty"`
+	NoFileAllocationLimit         string  `json:"no-file-allocation-limit,omitempty"`
 	NoNetrc                       bool    `json:"no-netrc,omitempty,string"`
 	NoProxy                       bool    `json:"no-proxy,omitempty,string"`
 	Out                           string  `json:"out,omitempty"`
