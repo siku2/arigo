@@ -3,16 +3,15 @@ package arigo
 import (
 	"os"
 	"path/filepath"
-    "strings"
+	"strings"
 )
-
 
 func DeleteControlFile(status Status) error {
 	name, err := GetDownloadName(status)
 	if err != nil {
 		return err
 	}
-	ctrlFile := filepath.Join(status.Dir, name + ".aria2")
+	ctrlFile := filepath.Join(status.Dir, name+".aria2")
 	return os.Remove(ctrlFile) // error can be ignored
 }
 
@@ -61,7 +60,7 @@ func removeRootDir(status Status) {
 
 func RemoveUnselectedFiles(status Status) {
 	for _, file := range status.Files {
-		if !file.Selected{
+		if !file.Selected {
 			_ = os.Remove(file.Path)
 		}
 	}
@@ -69,14 +68,11 @@ func RemoveUnselectedFiles(status Status) {
 	_, _ = RemoveEmptyDirs(filepath.Join(status.Dir, name), false)
 }
 
-
 // RemoveEmptyDirs walks root recursively and removes any directories that are empty.
 // It returns the number of directories removed and the first non-nil error encountered (if any).
-// Symlinked directories are skipped (not followed).
+// Symlinked directories are skipped
 func RemoveEmptyDirs(root string, removeRoot bool) (int, error) {
 	var removed int
-
-	// inner recursive function that returns (isEmpty bool, err error)
 	var walk func(path string) (bool, error)
 	walk = func(path string) (bool, error) {
 		entries, err := os.ReadDir(path)
@@ -102,7 +98,6 @@ func RemoveEmptyDirs(root string, removeRoot bool) (int, error) {
 					return false, err
 				}
 				if empty {
-					// try to remove it
 					if err := os.Remove(childPath); err != nil {
 						// if remove fails, we treat dir as non-empty for parent
 						return false, err
@@ -132,3 +127,4 @@ func RemoveEmptyDirs(root string, removeRoot bool) (int, error) {
 	}
 	return removed, nil
 }
+
