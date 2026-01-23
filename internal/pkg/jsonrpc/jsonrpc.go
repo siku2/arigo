@@ -4,15 +4,16 @@
 // Use []interface{} as the type of argument when sending and receiving methods.
 //
 // Positional arguments example:
-// 	server.Handle("add", func(client *rpc2.Client, args []interface{}, result *float64) error {
-// 		*result = args[0].(float64) + args[1].(float64)
-// 		return nil
-// 	})
+//
+//	server.Handle("add", func(client *rpc2.Client, args []interface{}, result *float64) error {
+//		*result = args[0].(float64) + args[1].(float64)
+//		return nil
+//	})
 //
 //	var result float64
-// 	client.Call("add", []interface{}{1, 2}, &result)
+//	client.Call("add", []interface{}{1, 2}, &result)
 //
-// from https://github.com/cenkalti/rpc2 modified to avoid disconnected client on any error
+// from https://github.com/nubuki-all/rpc2 modified to avoid disconnected client on any error
 package jsonrpc
 
 import (
@@ -23,7 +24,7 @@ import (
 	"reflect"
 	"sync"
 
-	"github.com/cenkalti/rpc2"
+	"github.com/nubuki-all/rpc2"
 	errs "github.com/siku2/arigo/errors"
 )
 
@@ -132,7 +133,7 @@ func (c *jsonCodec) ReadHeader(req *rpc2.Request, resp *rpc2.Response) error {
 		resp.Error = ""
 		resp.Seq = c.clientResponse.Id
 		if c.clientResponse.Error != nil || c.clientResponse.Result == nil {
-			var x errs.JsonRPCError
+			var x errs.JSONRPCError
 			err := json.Unmarshal(*c.clientResponse.Error, &x)
 			if err != nil {
 				var data interface{}

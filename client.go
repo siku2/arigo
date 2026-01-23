@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/nubuki-all/rpc2"
 	"github.com/gorilla/websocket"
+	"github.com/nubuki-all/rpc2"
 	"github.com/siku2/arigo/internal/pkg/jsonrpc"
 	"github.com/siku2/arigo/internal/pkg/wsrpc"
 	"github.com/siku2/arigo/pkg/aria2proto"
@@ -109,22 +109,27 @@ func (c *Client) onDownloadStart(_ *rpc2.Client, event *DownloadEvent, _ *interf
 	c.evtTarget.Dispatch(StartEvent, event)
 	return nil
 }
+
 func (c *Client) onDownloadPause(_ *rpc2.Client, event *DownloadEvent, _ *interface{}) error {
 	c.evtTarget.Dispatch(PauseEvent, event)
 	return nil
 }
+
 func (c *Client) onDownloadStop(_ *rpc2.Client, event *DownloadEvent, _ *interface{}) error {
 	c.evtTarget.Dispatch(StopEvent, event)
 	return nil
 }
+
 func (c *Client) onDownloadComplete(_ *rpc2.Client, event *DownloadEvent, _ *interface{}) error {
 	c.evtTarget.Dispatch(CompleteEvent, event)
 	return nil
 }
+
 func (c *Client) onDownloadError(_ *rpc2.Client, event *DownloadEvent, _ *interface{}) error {
 	c.evtTarget.Dispatch(ErrorEvent, event)
 	return nil
 }
+
 func (c *Client) onBTDownloadComplete(_ *rpc2.Client, event *DownloadEvent, _ *interface{}) error {
 	c.evtTarget.Dispatch(BTCompleteEvent, event)
 	return nil
@@ -216,30 +221,29 @@ func (c *Client) GetDownloads(gids ...string) []Status {
 	return statuses
 }
 
-// Delete removes the downloads denoted by status and deletes all corresponding files.
+// DeleteDownloads removes the downloads denoted by status and deletes all corresponding files.
 // This is not an aria2 method.
 func (c *Client) DeleteDownloads(statuses []Status, force, files, clean bool) {
 	for _, status := range statuses {
-		switch status.Status{
-			case StatusCompleted, StatusRemoved, StatusError:
-				_ = c.RemoveDownloadResult(status.GID)
-			default:
-				if force {
-					_ = c.ForceRemove(status.GID)
-				} else {
-					_ = c.Remove(status.GID)
-				}
-				_ = c.RemoveDownloadResult(status.GID)
+		switch status.Status {
+		case StatusCompleted, StatusRemoved, StatusError:
+			_ = c.RemoveDownloadResult(status.GID)
+		default:
+			if force {
+				_ = c.ForceRemove(status.GID)
+			} else {
+				_ = c.Remove(status.GID)
+			}
+			_ = c.RemoveDownloadResult(status.GID)
 		}
 		if files {
 			RemoveFiles(status.Files)
 			removeRootDir(status)
 		}
 		if clean {
-			DeleteControlFile(status)
+			_ = DeleteControlFile(status)
 		}
 	}
-	return
 }
 
 // Delete removes the download denoted by gid and deletes all corresponding files.
