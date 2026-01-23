@@ -8,8 +8,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/cenkalti/rpc2"
-	//"github.com/cenkalti/rpc2/jsonrpc"
+	"github.com/nubuki-all/rpc2"
 	"github.com/gorilla/websocket"
 	"github.com/siku2/arigo/internal/pkg/jsonrpc"
 	"github.com/siku2/arigo/internal/pkg/wsrpc"
