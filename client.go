@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/cenkalti/rpc2"
-	"github.com/cenkalti/rpc2/jsonrpc"
 	"github.com/gorilla/websocket"
+	"github.com/nubuki-all/rpc2"
+	"github.com/siku2/arigo/internal/pkg/jsonrpc"
 	"github.com/siku2/arigo/internal/pkg/wsrpc"
 	"github.com/siku2/arigo/pkg/aria2proto"
 )
@@ -109,22 +109,27 @@ func (c *Client) onDownloadStart(_ *rpc2.Client, event *DownloadEvent, _ *interf
 	c.evtTarget.Dispatch(StartEvent, event)
 	return nil
 }
+
 func (c *Client) onDownloadPause(_ *rpc2.Client, event *DownloadEvent, _ *interface{}) error {
 	c.evtTarget.Dispatch(PauseEvent, event)
 	return nil
 }
+
 func (c *Client) onDownloadStop(_ *rpc2.Client, event *DownloadEvent, _ *interface{}) error {
 	c.evtTarget.Dispatch(StopEvent, event)
 	return nil
 }
+
 func (c *Client) onDownloadComplete(_ *rpc2.Client, event *DownloadEvent, _ *interface{}) error {
 	c.evtTarget.Dispatch(CompleteEvent, event)
 	return nil
 }
+
 func (c *Client) onDownloadError(_ *rpc2.Client, event *DownloadEvent, _ *interface{}) error {
 	c.evtTarget.Dispatch(ErrorEvent, event)
 	return nil
 }
+
 func (c *Client) onBTDownloadComplete(_ *rpc2.Client, event *DownloadEvent, _ *interface{}) error {
 	c.evtTarget.Dispatch(BTCompleteEvent, event)
 	return nil
@@ -194,6 +199,51 @@ func (c *Client) DownloadWithContext(ctx context.Context, uris []string, options
 	}
 
 	return
+}
+
+// GetDownloads retrieves a list of statuses for the given gids
+// if no gid is given, return all the downloads.
+func (c *Client) GetDownloads(gids ...string) []Status {
+	var statuses []Status
+	if len(gids) != 0 {
+		for _, gid := range gids {
+			s, _ := c.TellStatus(gid)
+			statuses = append(statuses, s)
+		}
+	} else {
+		s, _ := c.TellActive()
+		statuses = append(statuses, s...)
+		s, _ = c.TellWaiting(0, 100)
+		statuses = append(statuses, s...)
+		s, _ = c.TellStopped(0, 100)
+		statuses = append(statuses, s...)
+	}
+	return statuses
+}
+
+// DeleteDownloads removes the downloads denoted by status and deletes all corresponding files.
+// This is not an aria2 method.
+func (c *Client) DeleteDownloads(statuses []Status, force, files, clean bool) {
+	for _, status := range statuses {
+		switch status.Status {
+		case StatusCompleted, StatusRemoved, StatusError:
+			_ = c.RemoveDownloadResult(status.GID)
+		default:
+			if force {
+				_ = c.ForceRemove(status.GID)
+			} else {
+				_ = c.Remove(status.GID)
+			}
+			_ = c.RemoveDownloadResult(status.GID)
+		}
+		if files {
+			RemoveFiles(status.Files)
+			removeRootDir(status)
+		}
+		if clean {
+			_ = DeleteControlFile(status)
+		}
+	}
 }
 
 // Delete removes the download denoted by gid and deletes all corresponding files.
@@ -471,6 +521,10 @@ func (c *Client) GetServers(gid string) ([]FileServers, error) {
 // keys does the same as in the TellStatus() method.
 func (c *Client) TellActive(keys ...string) ([]Status, error) {
 	var reply []Status
+
+	if len(keys) == 0 {
+		keys = make([]string, 0)
+	}
 	err := c.rpcClient.Call(aria2proto.TellActive, c.getArgs(keys), &reply)
 
 	return reply, err
@@ -488,6 +542,9 @@ func (c *Client) TellActive(keys ...string) ([]Status, error) {
 // If specified, the returned Statuses only contain the keys passed to the method.
 func (c *Client) TellWaiting(offset int, num uint, keys ...string) ([]Status, error) {
 	var reply []Status
+	if len(keys) == 0 {
+		keys = make([]string, 0)
+	}
 	err := c.rpcClient.Call(aria2proto.TellWaiting, c.getArgs(offset, num, keys), &reply)
 
 	return reply, err
@@ -505,6 +562,9 @@ func (c *Client) TellWaiting(offset int, num uint, keys ...string) ([]Status, er
 // If specified, the returned Statuses only contain the keys passed to the method.
 func (c *Client) TellStopped(offset int, num uint, keys ...string) ([]Status, error) {
 	var reply []Status
+	if len(keys) == 0 {
+		keys = make([]string, 0)
+	}
 	err := c.rpcClient.Call(aria2proto.TellStopped, c.getArgs(offset, num, keys), &reply)
 
 	return reply, err

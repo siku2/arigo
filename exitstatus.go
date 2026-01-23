@@ -1,112 +1,111 @@
 package arigo
 
-//go:generate stringer -type=ExitStatus
+import errs "github.com/siku2/arigo/errors"
 
-// ExitStatus is an integer returned by aria2 for downloads which describes why a download exited.
-// Please see https://aria2.github.io/manual/en/html/aria2c.html#exit-status
-type ExitStatus uint8
+// Re-export the ExitStatus type so callers can still use arigo.ExitStatus
+type ExitStatus = errs.ExitStatus
 
 const (
 	// Success indicates that all downloads were successful.
-	Success ExitStatus = iota
+	Success = errs.Success
 
 	// UnknownError indicates that an unknown error occurred.
-	UnknownError
+	UnknownError = errs.UnknownError
 
 	// Timeout indicates that a timeout occurred.
-	Timeout
+	Timeout = errs.Timeout
 
 	// ResourceNotFound indicates that a resource was not found.
-	ResourceNotFound
+	ResourceNotFound = errs.ResourceNotFound
 
 	// ResourceNotFoundReached indicates that aria2 saw the specified number of “resource not found” error.
 	// See the --max-file-not-found option.
-	ResourceNotFoundReached
+	ResourceNotFoundReached = errs.ResourceNotFoundReached
 
 	// DownloadSpeedTooSlow indicates that a download aborted because download speed was too slow.
 	// See --lowest-speed-limit option.
-	DownloadSpeedTooSlow
+	DownloadSpeedTooSlow = errs.DownloadSpeedTooSlow
 
 	// NetworkError indicates that a network problem occurred.
-	NetworkError
+	NetworkError = errs.NetworkError
 
 	// UnfinishedDownloads indicates that there were unfinished downloads.
 	// This error is only reported if all finished downloads were successful and there were unfinished
 	// downloads in a queue when aria2 exited by pressing Ctrl-C by an user or sending TERM or INT signal.
-	UnfinishedDownloads
+	UnfinishedDownloads = errs.UnfinishedDownloads
 
 	// RemoteNoResume indicates that the remote server did not support resume when resume was required to complete download.
-	RemoteNoResume
+	RemoteNoResume = errs.RemoteNoResume
 
 	// NotEnoughDiskSpace indicates that there was not enough disk space available.
-	NotEnoughDiskSpace
+	NotEnoughDiskSpace = errs.NotEnoughDiskSpace
 
 	// PieceLengthMismatch indicates that the piece length was different from one in .aria2 control file.
 	// See --allow-piece-length-change option.
-	PieceLengthMismatch
+	PieceLengthMismatch = errs.PieceLengthMismatch
 
 	// SameFileBeingDownloaded indicates that aria2 was downloading same file at that moment.
-	SameFileBeingDownloaded
+	SameFileBeingDownloaded = errs.SameFileBeingDownloaded
 
 	// SameInfoHashBeingDownloaded indicates that aria2 was downloading same info hash torrent at that moment.
-	SameInfoHashBeingDownloaded
+	SameInfoHashBeingDownloaded = errs.SameInfoHashBeingDownloaded
 
 	// FileAlreadyExists indicates that the file already existed. See --allow-overwrite option.
-	FileAlreadyExists
+	FileAlreadyExists = errs.FileAlreadyExists
 
-	//RenamingFailed indicates that renaming the file failed. See --auto-file-renaming option.
-	RenamingFailed
+	// RenamingFailed indicates that renaming the file failed. See --auto-file-renaming option.
+	RenamingFailed = errs.RenamingFailed
 
 	// CouldNotOpenExistingFile indicates that aria2 could not open existing file.
-	CouldNotOpenExistingFile
+	CouldNotOpenExistingFile = errs.CouldNotOpenExistingFile
 
 	// CouldNotCreateNewFile indicates that aria2 could not create new file or truncate existing file.
-	CouldNotCreateNewFile
+	CouldNotCreateNewFile = errs.CouldNotCreateNewFile
 
 	// FileIOError indicates that a file I/O error occurred.
-	FileIOError
+	FileIOError = errs.FileIOError
 
 	// CouldNotCreateDirectory indicates that aria2 could not create directory.
-	CouldNotCreateDirectory
+	CouldNotCreateDirectory = errs.CouldNotCreateDirectory
 
 	// NameResolutionFailed indicates that the name resolution failed.
-	NameResolutionFailed
+	NameResolutionFailed = errs.NameResolutionFailed
 
 	// MetalinkParsingFailed indicates that aria2 could not parse Metalink document.
-	MetalinkParsingFailed
+	MetalinkParsingFailed = errs.MetalinkParsingFailed
 
 	// FTPCommandFailed indicates that the FTP command failed.
-	FTPCommandFailed
+	FTPCommandFailed = errs.FTPCommandFailed
 
 	// HTTPResponseHeaderBad indicates that the HTTP response header was bad or unexpected.
-	HTTPResponseHeaderBad
+	HTTPResponseHeaderBad = errs.HTTPResponseHeaderBad
 
 	// TooManyRedirects indicates that too many redirects occurred.
-	TooManyRedirects
+	TooManyRedirects = errs.TooManyRedirects
 
 	// HTTPAuthorizationFailed indicates that HTTP authorization failed.
-	HTTPAuthorizationFailed
+	HTTPAuthorizationFailed = errs.HTTPAuthorizationFailed
 
 	// BencodedFileParseError indicates that aria2 could not parse bencoded file (usually “.torrent” file).
-	BencodedFileParseError
+	BencodedFileParseError = errs.BencodedFileParseError
 
 	// TorrentFileCorrupt indicates that the “.torrent” file was corrupted or missing information that aria2 needed.
-	TorrentFileCorrupt
+	TorrentFileCorrupt = errs.TorrentFileCorrupt
 
 	// MagnetURIBad indicates that the magnet URI was bad.
-	MagnetURIBad
+	MagnetURIBad = errs.MagnetURIBad
 
 	// RemoteServerHandleRequestError indicates that the remote server was unable to handle the request due to a
 	// temporary overloading or maintenance.
-	RemoteServerHandleRequestError
+	RemoteServerHandleRequestError = errs.RemoteServerHandleRequestError
 
 	// JSONRPCParseError indicates that aria2 could not parse JSON-RPC request.
-	JSONRPCParseError
+	JSONRPCParseError = errs.JSONRPCParseError
 
 	// Reserved is a reserved value. If you get this exit status then the library is probably out-of-date,
 	// or the universe is breaking down.
-	Reserved
+	Reserved = errs.Reserved
 
 	// ChecksumValidationFailed indicates that the checksum validation failed.
-	ChecksumValidationFailed
+	ChecksumValidationFailed = errs.ChecksumValidationFailed
 )
