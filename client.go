@@ -202,7 +202,8 @@ func (c *Client) DownloadWithContext(ctx context.Context, uris []string, options
 }
 
 // GetDownloads retrieves a list of statuses for the given gids
-// if no gid is given, return all the downloads.
+// if no gid is given, return all active downloads and a thousand (1000)
+// of each of most recent waiting and stopped downloads.
 func (c *Client) GetDownloads(gids ...string) []Status {
 	var statuses []Status
 	if len(gids) != 0 {
@@ -213,9 +214,9 @@ func (c *Client) GetDownloads(gids ...string) []Status {
 	} else {
 		s, _ := c.TellActive()
 		statuses = append(statuses, s...)
-		s, _ = c.TellWaiting(0, 100)
+		s, _ = c.TellWaiting(0, 1000)
 		statuses = append(statuses, s...)
-		s, _ = c.TellStopped(0, 100)
+		s, _ = c.TellStopped(0, 1000)
 		statuses = append(statuses, s...)
 	}
 	return statuses
