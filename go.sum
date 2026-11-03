@@ -4,10 +4,8 @@ github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/gorilla/websocket v1.5.3 h1:saDtZ6Pbx/0u+bgYQ3q96pZgCzfhKXGPqt7kZ72aNNg=
 github.com/gorilla/websocket v1.5.3/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
-github.com/nubuki-all/rpc2 v0.0.0-20260123134553-73acb79c44e6 h1:iNeX7DT3qj8ffSctuC9qMYp/Z4NDZwCHzpcabaXhxck=
-github.com/nubuki-all/rpc2 v0.0.0-20260123134553-73acb79c44e6/go.mod h1:+MrQdTszT+WuqIkY7p+gbFdFQ9QfegL7HzjoXJ5i+Bw=
-github.com/nubuki-all/rpc2 v1.0.0 h1:9I2yZTHqxpfYSQHPK9IzVcIuNFyeZF+kjKP4H7pjzUQ=
-github.com/nubuki-all/rpc2 v1.0.0/go.mod h1:+MrQdTszT+WuqIkY7p+gbFdFQ9QfegL7HzjoXJ5i+Bw=
+github.com/pah-0/rpc2 v1.0.1 h1:FSbXSRDj1vGHqLUDmprvjEsclUm3Kx78HxJKbx0ngHk=
+github.com/pah-0/rpc2 v1.0.1/go.mod h1:80OZa44hUZirb6Bku2/HVXs5ApPVPyovCVTO2ZDRj7s=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
