@@ -9,7 +9,7 @@ import (
 	"os"
 
 	"github.com/gorilla/websocket"
-	"github.com/nubuki-all/rpc2"
+	"github.com/pah-0/rpc2"
 	"github.com/siku2/arigo/internal/pkg/jsonrpc"
 	"github.com/siku2/arigo/internal/pkg/wsrpc"
 	"github.com/siku2/arigo/pkg/aria2proto"

@@ -13,7 +13,7 @@
 //	var result float64
 //	client.Call("add", []interface{}{1, 2}, &result)
 //
-// from https://github.com/nubuki-all/rpc2 modified to avoid disconnected client on any error
+// from https://github.com/pah-0/rpc2 modified to avoid disconnected client on any error
 package jsonrpc
 
 import (
@@ -24,7 +24,7 @@ import (
 	"reflect"
 	"sync"
 
-	"github.com/nubuki-all/rpc2"
+	"github.com/pah-0/rpc2"
 	errs "github.com/siku2/arigo/errors"
 )
 
